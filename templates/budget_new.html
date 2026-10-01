@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>予算プランを作成</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px 16px; background: #f4f7f3; color: #20352e; font: 18px/1.6 sans-serif; }
+    main { max-width: 620px; margin: 0 auto; }
+    h1 { margin: 0 0 20px; font-size: 28px; }
+    form { display: grid; gap: 18px; }
+    .field, .recipient { padding: 16px; background: #fff; border: 1px solid #d5dfd8; border-radius: 8px; }
+    label, legend { font-weight: 700; }
+    input[type="text"], input[type="number"], input[type="date"] { display: block; width: 100%; min-height: 48px; margin-top: 8px; padding: 10px 12px; border: 1px solid #9aaea2; border-radius: 6px; font: inherit; }
+    fieldset { display: grid; gap: 12px; margin: 0; padding: 0; border: 0; }
+    legend { margin-bottom: 10px; font-size: 21px; }
+    .recipient { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, 180px); align-items: center; gap: 12px; }
+    .recipient label { display: flex; align-items: center; gap: 10px; }
+    .recipient input[type="checkbox"] { width: 22px; height: 22px; flex: 0 0 auto; }
+    .icon { font-size: 28px; }
+    .recipient input[type="number"] { margin-top: 0; }
+    button { min-height: 54px; border: 0; border-radius: 6px; background: #287557; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+    .errors { margin: 0; padding: 14px 14px 14px 36px; background: #fff1ed; border: 1px solid #d99582; border-radius: 6px; color: #762d1d; white-space: pre-line; }
+    .summary { padding: 14px 16px; background: #e9f3ed; border: 1px solid #b5cfbd; border-radius: 6px; }
+    .summary p { margin: 2px 0; }
+    @media (max-width: 440px) { body { padding: 18px 12px; } .recipient { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>予算プランを作成</h1>
+    {% if errors %}
+      <ul class="errors" role="alert">
+        {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+    <form method="post">
+      <div class="field">
+        <label for="title">買い物の名前</label>
+        <input id="title" name="title" type="text" maxlength="100" required value="{{ form_data.get('title', '') }}">
+      </div>
+      <div class="field">
+        <label for="total_amount">全体予算（円）</label>
+        <input id="total_amount" name="total_amount" type="number" min="1" step="1" required value="{{ form_data.get('total_amount', '') }}">
+      </div>
+      <div class="field">
+        <label for="shopping_date">買い物をする日</label>
+        <input id="shopping_date" name="shopping_date" type="date" required value="{{ form_data.get('shopping_date', '') }}">
+      </div>
+      <fieldset>
+        <legend>誰に買う？</legend>
+        {% for recipient_type, recipient in recipient_types.items() %}
+          <div class="recipient">
+            <label for="select_{{ recipient_type }}">
+              <input id="select_{{ recipient_type }}" name="recipient_types" type="checkbox" value="{{ recipient_type }}" {% if recipient_type in selected_types %}checked{% endif %}>
+              <span class="icon" aria-hidden="true">{{ recipient.icon }}</span>
+              <span>{{ recipient.name }}</span>
+            </label>
+            <input aria-label="{{ recipient.name }}の予算（円）" name="amount_{{ recipient_type }}" type="number" min="1" step="1" placeholder="予算（円）" value="{{ form_data.get('amount_' ~ recipient_type, '') }}">
+          </div>
+        {% endfor %}
+      </fieldset>
+      {% if budget_summary %}
+        <div class="summary" aria-live="polite">
+          <p>全体予算：{{ "{:,}".format(budget_summary.total) }}円</p>
+          <p>わけた予算：{{ "{:,}".format(budget_summary.allocated) }}円</p>
+          {% if budget_summary.difference is gt(0) %}
+            <p>あと：{{ "{:,}".format(budget_summary.difference) }}円</p>
+          {% elif budget_summary.difference is lt(0) %}
+            <p>予算を：{{ "{:,}".format(-budget_summary.difference) }}円 こえているよ</p>
+          {% else %}
+            <p>予算ぴったりだよ！</p>
+          {% endif %}
+        </div>
+      {% endif %}
+      <button type="submit">登録する</button>
+    </form>
+  </main>
+</body>
+</html>

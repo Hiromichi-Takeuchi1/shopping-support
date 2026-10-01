@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>買う相手を追加</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px 16px; background: #f4f7f3; color: #20352e; font: 18px/1.6 sans-serif; }
+    main { max-width: 620px; margin: 0 auto; }
+    h1 { margin: 0 0 20px; font-size: 28px; }
+    form { display: grid; gap: 16px; }
+    fieldset, .field, .notice { padding: 16px; background: #fff; border: 1px solid #d5dfd8; border-radius: 8px; }
+    fieldset { display: grid; gap: 10px; margin: 0; }
+    legend, label { font-weight: 700; }
+    .choice { display: flex; align-items: center; gap: 10px; min-height: 48px; }
+    input[type="radio"] { width: 22px; height: 22px; }
+    .icon { font-size: 28px; }
+    input[type="number"] { display: block; width: 100%; min-height: 48px; margin-top: 8px; padding: 10px 12px; border: 1px solid #9aaea2; border-radius: 6px; font: inherit; }
+    button, .back { display: inline-block; min-height: 52px; padding: 12px 16px; border: 0; border-radius: 6px; background: #287557; color: #fff; font: inherit; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; }
+    .errors { padding: 14px 14px 14px 36px; background: #fff1ed; border: 1px solid #d99582; border-radius: 6px; color: #762d1d; white-space: pre-line; }
+    .notice { background: #e9f3ed; white-space: pre-line; }
+    @media (max-width: 440px) { body { padding: 18px 12px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>だれに買う？</h1>
+    <p>この予算プラン：{{ budget.title }}（あと {{ "{:,}".format(remaining_amount) }}円）</p>
+    {% if errors %}
+      <ul class="errors" role="alert">
+        {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+    {% if remaining_amount == 0 %}
+      <p class="notice">いまの予算はぜんぶ分けてあるよ。
+新しい相手を追加するなら、
+ほかの人の予算を少し変えてみよう！</p>
+    {% else %}
+      <form method="post">
+        <fieldset>
+          <legend>だれに買う？</legend>
+          {% for recipient_type, recipient_info in recipient_types.items() %}
+            <label class="choice" for="{{ recipient_type }}">
+              <input id="{{ recipient_type }}" name="recipient_type" type="radio" value="{{ recipient_type }}" required {% if recipient_type in selected_types %}checked{% endif %}>
+              <span class="icon" aria-hidden="true">{{ recipient_info.icon }}</span>
+              <span>{{ recipient_info.name }}</span>
+            </label>
+          {% endfor %}
+        </fieldset>
+        <div class="field">
+          <label for="budget_amount">いくら使う？（円）</label>
+          <input id="budget_amount" name="budget_amount" type="number" min="1" step="1" required value="{{ form_data.get('budget_amount', '') }}">
+        </div>
+        <button type="submit">この相手を追加する</button>
+      </form>
+    {% endif %}
+    <a class="back" href="{{ url_for('budget_detail', budget_id=budget.id) }}">予算プランに戻る</a>
+  </main>
+</body>
+</html>

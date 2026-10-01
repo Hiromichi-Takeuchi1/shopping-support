@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ budget.title }} | 予算プラン</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px 16px; background: #f4f7f3; color: #20352e; font: 18px/1.6 sans-serif; }
+    main { max-width: 620px; margin: 0 auto; }
+    h1 { margin: 0 0 20px; font-size: 28px; overflow-wrap: anywhere; }
+    section { margin-bottom: 16px; padding: 16px; background: #fff; border: 1px solid #d5dfd8; border-radius: 8px; }
+    h2 { margin: 0 0 8px; font-size: 21px; }
+    p { margin: 4px 0; }
+    ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+    li { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .recipient-info { display: flex; align-items: center; gap: 10px; }
+    .icon { font-size: 28px; }
+    a { display: inline-block; margin-top: 8px; padding: 12px 16px; border-radius: 6px; background: #287557; color: #fff; font-weight: 700; text-decoration: none; }
+    a.edit { margin: 0; padding: 8px 12px; background: #e9f3ed; color: #20352e; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>{{ budget.title }}</h1>
+    <section>
+      <h2>全体予算</h2>
+      <p>{{ "{:,}".format(budget.total_amount) }}円</p>
+      <h2>買い物をする日</h2>
+      <p>{{ budget.start_date.strftime("%Y年%m月%d日") }}</p>
+    </section>
+    <section>
+      <h2>誰に買う？</h2>
+      <ul>
+        {% for recipient in budget.recipients %}
+          <li>
+            <span class="recipient-info">
+              <span class="icon" aria-hidden="true">{% if recipient.icon_type == "family" %}👨‍👩‍👧{% elif recipient.icon_type == "grandparents" %}👴👵{% elif recipient.icon_type == "self" %}🙂{% elif recipient.icon_type == "friends" %}👫{% endif %}</span>
+              <span>{{ recipient.name }}：{{ "{:,}".format(recipient.budget_amount) }}円</span>
+            </span>
+            <a class="edit" href="{{ url_for('recipient_edit', recipient_id=recipient.id) }}">編集</a>
+          </li>
+        {% endfor %}
+      </ul>
+      <a href="{{ url_for('recipient_new', budget_id=budget.id) }}">相手を追加する</a>
+    </section>
+    <a href="{{ url_for('budget_new') }}">新しい予算プランを作る</a>
+  </main>
+</body>
+</html>
